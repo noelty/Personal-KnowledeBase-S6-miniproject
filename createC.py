@@ -14,7 +14,7 @@ MEMORY_COLLECTION = "chat_memory"
 
 # Create a separate collection for chat memory
 qdrant_client.create_collection(
-    collection_name=MEMORY_COLLECTION,
+    collection_name=DOCUMENT_COLLECTION,
     vectors_config=VectorParams(
         size=embedding_model.get_sentence_embedding_dimension(),
         distance=Distance.COSINE
