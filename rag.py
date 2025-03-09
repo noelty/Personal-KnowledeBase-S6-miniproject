@@ -17,7 +17,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Validate HF_TOKEN
-HF_TOKEN = os.getenv("HF_TOKEN")
+token_name = "HF_API_TOKEN" # give the token name corresponding to the one given in env variables
+print(token_name)
+HF_TOKEN = os.getenv(token_name)
 if not HF_TOKEN:
     raise EnvironmentError("HF_TOKEN environment variable is not set")
 

@@ -20,3 +20,12 @@ qdrant_client.create_collection(
         distance=Distance.COSINE
     )
 )
+
+# Create a separate collection for document collection
+qdrant_client.create_collection(
+    collection_name=DOCUMENT_COLLECTION,
+    vectors_config=VectorParams(
+        size=embedding_model.get_sentence_embedding_dimension(),
+        distance=Distance.COSINE
+    )
+)
