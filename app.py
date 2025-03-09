@@ -39,6 +39,28 @@ if uploaded_files:
             else:
                 st.sidebar.error(f"Failed to index {uploaded_file.name}: {response['message']}")
 
+# Add sidebar for URL input
+st.sidebar.header("Upload URL")
+url = st.sidebar.text_input("Enter the URL of the website to scrape")
+
+# Handle URL input
+if url:
+    if st.sidebar.button("Scrape URL"):
+        st.sidebar.write(f"Scraping {url}...")
+        try:
+            # scraped_content = scrape_website(url)  # Assuming this function returns the scraped text
+            st.sidebar.write(f"✅ Scraped content from {url}")
+            # chunks = load_and_chunk_documents_with_multiple_strategies(scraped_content)
+            response = index_document_with_strategies(COLLECTION_NAME, url, chunks)
+            if response["status"] == "success":
+                st.sidebar.success(f"Indexed {len(chunks)} chunks for {url}")
+            else:
+                st.sidebar.error(f"Failed to index {url}: {response['message']}")
+        except Exception as e:
+            st.sidebar.error(f"Failed to scrape {url}: {str(e)}")
+
+
+
 # Left sidebar for showing sources
 with st.sidebar:
     st.header("Sources")
