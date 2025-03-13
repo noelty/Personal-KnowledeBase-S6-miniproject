@@ -37,6 +37,17 @@ def load_and_chunk_documents_with_multiple_strategies(
     elif file_path.endswith('.docx'):
         from langchain_community.document_loaders import Docx2txtLoader
         loader = Docx2txtLoader(file_path)
+    elif file_path.endswith('.md'):
+        from langchain_community.document_loaders import UnstructuredMarkdownLoader
+        from langchain_core.documents import Document
+
+        # markdown_path = "../../../README.md"
+        loader = UnstructuredMarkdownLoader(file_path)
+        # assert len(data) == 1
+        # assert isinstance(data[0], Document)
+        # readme_content = data[0].page_content
+        # print(readme_content[:250])
+        
     else:
         from langchain_community.document_loaders import TextLoader
         loader = TextLoader(file_path)
