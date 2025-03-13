@@ -75,4 +75,4 @@ async def main():
         print("No URLs found to crawl")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main())  
