@@ -1,9 +1,11 @@
 import streamlit as st
+import asyncio
 from memory_manager import store_message, retrieve_messages
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from document_loader import load_and_chunk_documents_with_multiple_strategies
 from qdrant_helper import index_document_with_strategies, query_qdrant_multi_strategy,hybrid_search
 from rag import generate_answer
+from web_crawl import get_scrape_content
 
 SESSION_ID = "user_session"
 COLLECTION_NAME = "document_chunks"
@@ -38,6 +40,28 @@ if uploaded_files:
                 st.sidebar.success(f"Indexed {len(chunks)} chunks for {uploaded_file.name}")
             else:
                 st.sidebar.error(f"Failed to index {uploaded_file.name}: {response['message']}")
+
+# Add sidebar for URL input
+st.sidebar.header("Upload URL")
+url = st.sidebar.text_input("Enter the URL of the website to scrape")
+
+# Handle URL input
+if url:
+    if st.sidebar.button("Scrape URL"):
+        st.sidebar.write(f"Scraping {url}...")
+        try:
+            scraped_content = asyncio.run(get_scrape_content(url))  # Assuming this function returns the scraped text
+            st.sidebar.write(f"✅ Scraped content from {url}")
+            chunks = load_and_chunk_documents_with_multiple_strategies(scraped_content)
+            response = index_document_with_strategies(COLLECTION_NAME, url, chunks)
+            if response["status"] == "success":
+                st.sidebar.success(f"Indexed {len(chunks)} chunks for {url}")
+            else:
+                st.sidebar.error(f"Failed to index {url}: {response['message']}")
+        except Exception as e:
+            st.sidebar.error(f"Failed to scrape {url}: {str(e)}")
+
+
 
 # Left sidebar for showing sources
 with st.sidebar:
