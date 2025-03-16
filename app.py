@@ -50,9 +50,9 @@ if url:
     if st.sidebar.button("Scrape URL"):
         st.sidebar.write(f"Scraping {url}...")
         try:
-            scraped_content = asyncio.run(get_scrape_content(url))  # Assuming this function returns the scraped text
+            scraped_file = asyncio.run(get_scrape_content(url))  # Assuming this function returns the scraped text
             st.sidebar.write(f"✅ Scraped content from {url}")
-            chunks = load_and_chunk_documents_with_multiple_strategies(scraped_content)
+            chunks = load_and_chunk_documents_with_multiple_strategies(scraped_file)
             response = index_document_with_strategies(COLLECTION_NAME, url, chunks)
             if response["status"] == "success":
                 st.sidebar.success(f"Indexed {len(chunks)} chunks for {url}")

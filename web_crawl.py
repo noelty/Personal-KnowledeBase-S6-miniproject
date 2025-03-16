@@ -7,12 +7,15 @@ async def get_scrape_content(url):
             url= url,
         )
         print(result.markdown)
-        return result.markdown
-        # with open("example.md", "w") as file:
-        #     file.write(result.markdown)
+        # file = f"{url[8:].replace('/', '_')}.md"
+        file = "sample.md"
+        with open(file, "w") as md_file:
+            md_file.write(result.markdown)
+        return file
+        
     
 
-# asyncio.run(get_scrape_content("https://qdrant.tech/documentation/quickstart/"))        
+# asyncio.run(get_scrape_content(url))        
 
 # if __name__ == "__main__":
 #     asyncio.run(main())
