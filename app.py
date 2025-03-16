@@ -1,5 +1,7 @@
 import streamlit as st
 import os
+import asyncio
+from memory_manager import store_message, retrieve_messages
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from document_loader import load_and_chunk_documents_with_multiple_strategies
 from qdrant_helper import index_document_with_strategies
@@ -17,6 +19,10 @@ from conversation_aware_rag import (
 )
 
 # Constants
+from qdrant_helper import index_document_with_strategies, query_qdrant_multi_strategy,hybrid_search
+from rag import generate_answer
+from web_crawl import get_scrape_content
+
 SESSION_ID = "user_session"
 DOCUMENT_COLLECTION = "document_chunks"
 
@@ -65,6 +71,47 @@ with st.sidebar:
         value=st.session_state.use_conversation_memory,
         help="When enabled, the assistant will use previous conversation context"
     )
+    st.sidebar.write(f"✅ Saved {uploaded_file.name}")
+    chunks = load_and_chunk_documents_with_multiple_strategies(file_path)
+    response = index_document_with_strategies(COLLECTION_NAME, uploaded_file.name, chunks)
+    if response["status"] == "success":
+        st.sidebar.success(f"Indexed {len(chunks)} chunks for {uploaded_file.name}")
+    else:
+        st.sidebar.error(f"Failed to index {uploaded_file.name}: {response['message']}")
+
+# Add sidebar for URL input
+st.sidebar.header("Upload URL")
+url = st.sidebar.text_input("Enter the URL of the website to scrape")
+
+# Handle URL input
+if url:
+    if st.sidebar.button("Scrape URL"):
+        st.sidebar.write(f"Scraping {url}...")
+        try:
+            scraped_file = asyncio.run(get_scrape_content(url))  # Assuming this function returns the scraped text
+            st.sidebar.write(f"✅ Scraped content from {url}")
+            chunks = load_and_chunk_documents_with_multiple_strategies(scraped_file)
+            response = index_document_with_strategies(COLLECTION_NAME, url, chunks)
+            if response["status"] == "success":
+                st.sidebar.success(f"Indexed {len(chunks)} chunks for {url}")
+            else:
+                st.sidebar.error(f"Failed to index {url}: {response['message']}")
+        except Exception as e:
+            st.sidebar.error(f"Failed to scrape {url}: {str(e)}")
+
+
+
+# Left sidebar for showing sources
+with st.sidebar:
+    st.header("Sources")
+    if st.session_state.last_retrieved_chunks:
+        for i, chunk in enumerate(st.session_state.last_retrieved_chunks):
+            source = chunk["metadata"].get("source", "Unknown Source")
+            score = chunk.get("score", "N/A")
+            with st.expander(f"Source {i+1} (Score: {score:.2f}) - {source}"):
+                st.write(chunk["text"])
+    else:
+        st.write("No sources to display. Ask a question to see relevant sources.")
 
 # Main chat area (left column)
 with col1:
