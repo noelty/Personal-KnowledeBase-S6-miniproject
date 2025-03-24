@@ -5,7 +5,7 @@ from memory_manager import store_message#, retrieve_messages
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from document_loader import load_and_chunk_documents_with_multiple_strategies
 from qdrant_helper import index_document_with_strategies
-from langchain.schema import Document   Ensure you import the Document class
+from langchain.schema import Document
 from memory_manager import (
     retrieve_context_relevant_messages,
     get_all_session_messages,
@@ -83,7 +83,6 @@ if url:
             scraped_file = asyncio.run(get_scrape_content(url))  # Assuming this function returns the scraped text
             st.sidebar.write(f"✅ Scraped content from {url}")
             chunks = load_and_chunk_documents_with_multiple_strategies(scraped_file)
-            st.write(chunks)
                     
             response = index_document_with_strategies(DOCUMENT_COLLECTION, url, chunks)
             if response["status"] == "success":
