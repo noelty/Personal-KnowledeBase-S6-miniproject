@@ -1,18 +1,17 @@
 import streamlit as st
 import os
 import asyncio
-from memory_manager import store_message, retrieve_messages
+from memory_manager import store_message#, retrieve_messages
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from document_loader import load_and_chunk_documents_with_multiple_strategies
 from qdrant_helper import index_document_with_strategies
-
+from langchain.schema import Document
 from memory_manager import (
     retrieve_context_relevant_messages,
     get_all_session_messages,
     store_message,
     format_context_messages
 )
-
 from conversation_aware_rag import (
     answer_query_with_conversation_context,
     create_context_message
@@ -71,13 +70,6 @@ with st.sidebar:
         value=st.session_state.use_conversation_memory,
         help="When enabled, the assistant will use previous conversation context"
     )
-    st.sidebar.write(f"✅ Saved {uploaded_file.name}")
-    chunks = load_and_chunk_documents_with_multiple_strategies(file_path)
-    response = index_document_with_strategies(COLLECTION_NAME, uploaded_file.name, chunks)
-    if response["status"] == "success":
-        st.sidebar.success(f"Indexed {len(chunks)} chunks for {uploaded_file.name}")
-    else:
-        st.sidebar.error(f"Failed to index {uploaded_file.name}: {response['message']}")
 
 # Add sidebar for URL input
 st.sidebar.header("Upload URL")
@@ -91,27 +83,41 @@ if url:
             scraped_file = asyncio.run(get_scrape_content(url))  # Assuming this function returns the scraped text
             st.sidebar.write(f"✅ Scraped content from {url}")
             chunks = load_and_chunk_documents_with_multiple_strategies(scraped_file)
-            response = index_document_with_strategies(COLLECTION_NAME, url, chunks)
+                    
+            response = index_document_with_strategies(DOCUMENT_COLLECTION, url, chunks)
             if response["status"] == "success":
                 st.sidebar.success(f"Indexed {len(chunks)} chunks for {url}")
             else:
                 st.sidebar.error(f"Failed to index {url}: {response['message']}")
         except Exception as e:
             st.sidebar.error(f"Failed to scrape {url}: {str(e)}")
-
-
-
 # Left sidebar for showing sources
+# with st.sidebar:
+#     st.header("Sources")
+#     if st.session_state.last_retrieved_sources:
+#         for i, chunk in enumerate(st.session_state.last_retrieved_sources):
+#             source = chunk["metadata"].get("source", "Unknown Source")
+#             score = chunk.get("score", "N/A")
+#             with st.expander(f"Source {i+1} (Score: {score:.2f}) - {source}"):
+#                 st.write(chunk["text"])
+#     else:
+#         st.write("No sources to display. Ask a question to see relevant sources.")
+
 with st.sidebar:
     st.header("Sources")
-    if st.session_state.last_retrieved_chunks:
-        for i, chunk in enumerate(st.session_state.last_retrieved_chunks):
-            source = chunk["metadata"].get("source", "Unknown Source")
+    if st.session_state.last_retrieved_sources:
+        for i, chunk in enumerate(st.session_state.last_retrieved_sources):
+            # Handle both structures: nested metadata dict or flattened attributes
+            if "metadata" in chunk:
+                # Original structure with metadata dict
+                source = chunk["metadata"].get("source", "Unknown Source")
+            else:
+                # Flattened structure from MD files
+                source = chunk.get("source", "Unknown Source")
+            
             score = chunk.get("score", "N/A")
             with st.expander(f"Source {i+1} (Score: {score:.2f}) - {source}"):
-                st.write(chunk["text"])
-    else:
-        st.write("No sources to display. Ask a question to see relevant sources.")
+                st.write(chunk.get("text", "No text available"))
 
 # Main chat area (left column)
 with col1:
@@ -145,7 +151,7 @@ with col1:
                 st.session_state.last_retrieved_sources = response.get("sources", [])
                 if response.get("sources"):
                     st.session_state.messages.append(create_context_message(response["sources"]))
-                
+               
                 st.write(response["answer"])
                 st.session_state.messages.append(AIMessage(content=response["answer"]))
                 store_message(SESSION_ID, response["answer"], "assistant")

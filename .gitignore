@@ -1,5 +1,11 @@
+# folders
 __pycache__/
 qdrant_storage/
 uploads/
+scraped_files/
+rohan_files/
+.vscode/
 
+
+# files
 .env
