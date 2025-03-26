@@ -26,3 +26,4 @@ dependencies:
       - Crawl4AI>=0.5.0
       - unstructured[md]>=0.16.25
       # - logging>=0.5.1
+
