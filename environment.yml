@@ -24,4 +24,6 @@ dependencies:
       - uuid>=1.30
       - fuzzywuzzy>=0.18.0
       - Crawl4AI>=0.5.0
-      # - logging>=0.5.1
+      - unstructured[md]>=0.16.25
+      # - logging>=0.5.1
+

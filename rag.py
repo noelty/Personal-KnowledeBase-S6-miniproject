@@ -1,14 +1,13 @@
 import os
 import logging
-import torch
 import uuid
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 from dotenv import load_dotenv
-from transformers import AutoTokenizer, pipeline
 from sentence_transformers import SentenceTransformer
 import qdrant_helper as qdrant_helper
 from document_loader import load_and_chunk_documents_with_multiple_strategies, create_rolling_window_chunks
 from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader
+from openai import OpenAI
 
 load_dotenv()
 
@@ -16,53 +15,61 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Validate HF_TOKEN
-HF_TOKEN = os.getenv("HF_TOKEN")
-if not HF_TOKEN:
-    raise EnvironmentError("HF_TOKEN environment variable is not set")
+# Validate environment variables
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+if not DEEPSEEK_API_KEY:
+    raise EnvironmentError("DEEPSEEK_API_KEY environment variable is not set")
+
+# Initialize OpenAI client with DeepSeek endpoint
+client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
 
 # Load Sentence Transformer for Query Embeddings
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Specify the model name
-model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-
-# Load the tokenizer associated with the specified model
-tokenizer = AutoTokenizer.from_pretrained(model_name, padding=True, truncation=True, max_length=512)
-
-# Define a question-answering pipeline using the model and tokenizer
-question_answerer = pipeline(
-    "question-answering", 
-    model=model_name, 
-    tokenizer=tokenizer,
-    device=0 if torch.cuda.is_available() else -1,  # Use GPU if available
-    return_tensors='pt'
-)
-
-def generate_answer(query, context, max_length=256, temperature=1.0):
+def generate_answer(query, context, max_tokens=256, temperature=1.0):
     """
-    Generate an answer for a query based on the provided context using the LLM.
+    Generate an answer for a query based on the provided context using DeepSeek API.
     
     Args:
         query (str): The user's question
         context (str): The context text to use for answering
+        max_tokens (int): Maximum tokens in the response
+        temperature (float): Temperature for response generation
         
     Returns:
         str: The generated answer
     """
-    logger.info("Generating answer using TinyBERT")
+    logger.info("Generating answer using DeepSeek API")
     if not context.strip():
         logger.warning("Empty context provided to generate_answer")
         return "No information found in the database."
 
     try:
-        result = question_answerer(
-            question=query, 
-            context=context,
-            max_length=max_length,
-            temperature=temperature
+        # Construct a prompt that includes both the context and the question
+        prompt = f"""
+Context information:
+{context}
+
+Based on the context information provided, please answer the following question:
+Question: {query}
+Answer:"""
+
+        # Call DeepSeek API
+        response = client.chat.completions.create(
+            model="deepseek-chat",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant. Answer the question based only on the provided context."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=max_tokens,
+            temperature=temperature,
+            stream=False
         )
-        return result["answer"]
+        
+        # Extract the response text
+        answer = response.choices[0].message.content
+        return answer
+
     except Exception as e:
         logger.error(f"Error generating answer: {str(e)}")
         return f"Error generating answer: {str(e)}"
@@ -252,13 +259,13 @@ def compare_search_strategies(user_query, top_k=5):
 
 if __name__ == "__main__":
     # Example processing a document with multiple chunking strategies
-    """file_path = "example.pdf"
+    '''file_path = "n.txt"
     if os.path.exists(file_path):
         result = process_document(file_path)
-        print(f"Document processing result: {result}")"""
+        print(f"Document processing result: {result}")'''
     
     # Example query with strategy comparison
-    query = "What is the Introduction?"
+    query = "Who did the Congress criticise on Sunday over his podcast with computer scientist Lex Fridman?"
     comparison = compare_search_strategies(query)
     print(f"Best strategy: {comparison['best_strategy']}")
     print(f"Answer: {comparison['best_answer']}")
