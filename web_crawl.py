@@ -17,7 +17,7 @@ async def get_scrape_content(url):
         raw_file_name = f"{hostname}_{path}" if path else hostname
         file = re.sub(r'[<>:"/\\|?*]', "_", raw_file_name) + ".md"
         
-        folder_name = "scraped_files"
+        folder_name = "data/scraped_files"
         file_path = os.path.join(folder_name,file)
         os.makedirs(folder_name, exist_ok=True)
         

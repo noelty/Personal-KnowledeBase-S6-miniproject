@@ -25,5 +25,7 @@ dependencies:
       - fuzzywuzzy>=0.18.0
       - Crawl4AI>=0.5.0
       - unstructured[md]>=0.16.25
+      - openai>=1.68.2
+      - streamlit-authenticator>=0.4.2
       # - logging>=0.5.1
 
