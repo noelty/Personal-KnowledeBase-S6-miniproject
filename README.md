@@ -47,7 +47,6 @@ This system is designed to be an **efficient, scalable, and user-friendly soluti
 ### 🖥 **Intuitive Frontend with Authentication**
 
 - **User-friendly interface** for document uploads, queries, and knowledge retrieval.
-- Secure authentication (OAuth 2.0 / JWT) ensures data privacy.
 
 ### 💬 **Interactive Chat-Based Search**
 
@@ -58,16 +57,14 @@ This system is designed to be an **efficient, scalable, and user-friendly soluti
 
 ## 🏗️ Tech Stack
 
-| **Category**       | **Technology**                             |
-| ------------------ | ------------------------------------------ |
-| **Frontend**       | React.js / Vue.js                          |
-| **Backend**        | Python (FastAPI, Flask, Django)            |
-| **Database**       | PostgreSQL / MongoDB                       |
-| **Vector DB**      | Qdrant                                     |
-| **AI/ML**          | Hugging Face Transformers (for embeddings) |
-| **Web Scraping**   | Playwright                                 |
-| **Authentication** | OAuth 2.0 / JWT                            |
-| **Hosting**        | AWS / GCP / Azure                          |
+| **Category**     | **Technology**                             |
+| ---------------- | ------------------------------------------ |
+| **Frontend**     | Streamlit                                  |
+| **Backend**      | Python                                     |
+| **Vector DB**    | Qdrant                                     |
+| **AI/ML**        | Hugging Face Transformers (for embeddings) |
+| **Generation**   | DeepSeek                                   |
+| **Web Scraping** | Crawl4AI                                   |
 
 ---
 
@@ -81,7 +78,6 @@ This system is designed to be an **efficient, scalable, and user-friendly soluti
 
 ### 🔧 **Backend**
 
-- **Database for File Storage**
 - **Pre-trained Large Language Model (LLM)**
 - **Vector Database for Fast Retrieval**
 - **Transformer Model for Embeddings**
